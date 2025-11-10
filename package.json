@@ -1,0 +1,36 @@
+{
+  "name": "demo-acct-gearshift",
+  "version": "1.0.0",
+  "description": "Browser-based adaptive cognitive control research experiment with jsPsych + Firebase",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js",
+    "format": "prettier --write \"src/**/*.{js,css,html}\""
+  },
+  "keywords": [
+    "jsPsych",
+    "cognitive-science",
+    "research",
+    "experiment",
+    "adaptive-testing",
+    "stroop-task"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "jspsych": "^8.0.2",
+    "@jspsych/plugin-html-keyboard-response": "^2.0.0",
+    "@jspsych/plugin-instructions": "^2.0.0",
+    "@jspsych/plugin-survey-html-form": "^2.0.0",
+    "firebase": "^10.7.1",
+    "chart.js": "^4.4.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.8",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1"
+  }
+}

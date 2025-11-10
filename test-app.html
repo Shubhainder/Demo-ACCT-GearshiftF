@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACCT Test</title>
+</head>
+<body>
+    <div id="test-output" style="padding: 20px; font-family: monospace;">
+        <h2>Testing ACCT App Load...</h2>
+        <div id="results"></div>
+    </div>
+    
+    <script type="module">
+        const results = document.getElementById('results');
+        
+        function log(msg, status = 'info') {
+            const colors = { info: '#666', success: '#16a34a', error: '#dc2626' };
+            results.innerHTML += `<div style="color: ${colors[status]}">${msg}</div>`;
+        }
+        
+        try {
+            log('✓ Script loading...', 'info');
+            
+            // Test imports
+            import('./src/main.js').then(() => {
+                log('✓ Main.js loaded successfully', 'success');
+            }).catch(err => {
+                log(`✗ Error loading main.js: ${err.message}`, 'error');
+                console.error(err);
+            });
+            
+        } catch(err) {
+            log(`✗ Fatal error: ${err.message}`, 'error');
+            console.error(err);
+        }
+    </script>
+</body>
+</html>

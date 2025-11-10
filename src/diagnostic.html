@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Configuration Diagnostics</title>
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    h1 {
+      color: #00ff00;
+      text-align: center;
+    }
+    .section {
+      background: #0a0a0a;
+      border: 1px solid #00ff00;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .ok {
+      color: #00ff00;
+    }
+    .error {
+      color: #ff0000;
+    }
+    .warning {
+      color: #ffaa00;
+    }
+    pre {
+      background: #000;
+      padding: 0.5rem;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Firebase Configuration Diagnostics</h1>
+
+  <div class="section">
+    <h2>Build Environment</h2>
+    <div id="env-info"></div>
+  </div>
+
+  <div class="section">
+    <h2>Firebase Configuration</h2>
+    <div id="config-info"></div>
+  </div>
+
+  <div class="section">
+    <h2>Firebase Initialization Status</h2>
+    <div id="init-info"></div>
+  </div>
+
+  <div class="section">
+    <h2>Authentication Status</h2>
+    <div id="auth-info"></div>
+  </div>
+
+  <div class="section">
+    <h2>Actions Required</h2>
+    <div id="actions"></div>
+  </div>
+
+  <script type="module">
+    import { isFirebaseEnabled, auth, db } from './firebase/config.js';
+
+    // Environment Info
+    const envInfo = document.getElementById('env-info');
+    envInfo.innerHTML = `
+      <p>Mode: ${import.meta.env.MODE}</p>
+      <p>Dev: ${import.meta.env.DEV}</p>
+      <p>Prod: ${import.meta.env.PROD}</p>
+    `;
+
+    // Config Info
+    const configInfo = document.getElementById('config-info');
+    const config = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+    };
+
+    let configHtml = '';
+    let allSet = true;
+    Object.entries(config).forEach(([key, value]) => {
+      const isSet = value && value !== 'undefined';
+      const displayValue = isSet ? (key === 'apiKey' || key === 'appId' ? value.substring(0, 15) + '...' : value) : 'UNDEFINED';
+      const cssClass = isSet ? 'ok' : 'error';
+      configHtml += `<p class="${cssClass}">${key}: ${displayValue}</p>`;
+      if (!isSet && key !== 'measurementId') allSet = false;
+    });
+    configInfo.innerHTML = configHtml;
+
+    // Init Info
+    const initInfo = document.getElementById('init-info');
+    initInfo.innerHTML = `
+      <p class="${isFirebaseEnabled ? 'ok' : 'error'}">
+        Firebase Enabled: ${isFirebaseEnabled}
+      </p>
+      <p class="${db ? 'ok' : 'error'}">
+        Firestore DB: ${db ? 'Initialized' : 'Not Initialized'}
+      </p>
+    `;
+
+    // Auth Info
+    const authInfo = document.getElementById('auth-info');
+    setTimeout(() => {
+      const hasUser = auth && auth.currentUser;
+      authInfo.innerHTML = `
+        <p class="${hasUser ? 'ok' : 'warning'}">
+          Authenticated: ${hasUser ? 'Yes' : 'No (waiting for auth...)'}
+        </p>
+        ${hasUser ? `<p>User UID: ${auth.currentUser.uid}</p>` : ''}
+      `;
+    }, 2000);
+
+    // Actions
+    const actions = document.getElementById('actions');
+    if (!allSet) {
+      actions.innerHTML = `
+        <p class="error">CRITICAL: Environment variables are not set!</p>
+        <p>This build was created WITHOUT proper Firebase configuration.</p>
+        <br>
+        <p>Steps to fix:</p>
+        <ol>
+          <li>Go to GitHub repository settings</li>
+          <li>Navigate to: Settings > Secrets and variables > Actions</li>
+          <li>Add/verify these secrets:
+            <pre>VITE_FIREBASE_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET
+VITE_FIREBASE_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID
+VITE_FIREBASE_MEASUREMENT_ID</pre>
+          </li>
+          <li>Re-run the GitHub Actions workflow</li>
+        </ol>
+      `;
+    } else {
+      actions.innerHTML = `
+        <p class="ok">All configuration looks good!</p>
+        <p>If you're still experiencing issues:</p>
+        <ol>
+          <li>Check Firebase Console > Authentication > Sign-in method > Anonymous is ENABLED</li>
+          <li>Check Firestore Database > Rules allow authenticated access</li>
+          <li>Check browser console for specific error messages</li>
+        </ol>
+      `;
+    }
+  </script>
+</body>
+</html>
